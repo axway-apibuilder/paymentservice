@@ -1,0 +1,242 @@
+{
+	"schemaVersion": "4",
+	"info": {
+		"name": "Kafka Order consumer flow",
+		"description": "Example of how to consume messages from a Kafka topic."
+	},
+	"parameter": {
+		"properties": {
+			"request": {
+				"description": "The request"
+			},
+			"config": {
+				"type": "object",
+				"description": "The service's configuration"
+			},
+			"env": {
+				"type": "object",
+				"description": "The host OS environment"
+			}
+		},
+		"additionalProperties": false
+	},
+	"start": "javascript.1",
+	"nodes": {
+		"javascript.1": {
+			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
+			"name": "Execute",
+			"method": "Execute",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$",
+					"metaName": "Data",
+					"metaDescription": "The value to apply as the `data` argument to the JavaScript code. For objects and arrays, `data` is passed by reference."
+				},
+				{
+					"name": "code",
+					"type": "string",
+					"value": "\"console.log('KafkaConsumer flow received message from Kafka topic:', data.request.value);\"",
+					"metaName": "Code",
+					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.result",
+					"routes": [
+						"account.1"
+					],
+					"metaName": "Next"
+				},
+				"error": {
+					"context": "$.error",
+					"routes": [],
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Execute"
+		},
+		"kafka.1": {
+			"type": "nodehandler://@axway/api-builder-plugin-ft-kafka/kafka",
+			"name": "Publish JSON",
+			"method": "publishJSON",
+			"parameters": [
+				{
+					"name": "channelId",
+					"type": "string",
+					"value": "\"kafka-1\"",
+					"metaName": "Channel ID",
+					"metaDescription": "The Kafka channel ID as configured in triggers/kafka.yml."
+				},
+				{
+					"name": "topic",
+					"type": "string",
+					"value": "\"payment-events\"",
+					"metaName": "Topic",
+					"metaDescription": "The topic."
+				},
+				{
+					"name": "message",
+					"type": "jsonpath",
+					"value": "$.request.value",
+					"metaName": "Message",
+					"metaDescription": "The message to publish."
+				}
+			],
+			"outputs": {
+				"next": {
+					"routes": [],
+					"metaName": "Next"
+				},
+				"error": {
+					"routes": [],
+					"context": "$.error",
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Publish JSON"
+		},
+		"account.1": {
+			"type": "nodehandler://api-builder-flow-invoke/model/mysql/account",
+			"name": "Find by ID",
+			"method": "findByID",
+			"parameters": [
+				{
+					"name": "userId",
+					"type": "jsonpath",
+					"value": "$.request.value.userId",
+					"metaName": "userId"
+				}
+			],
+			"outputs": {
+				"next": {
+					"routes": [
+						"javascript.2"
+					],
+					"context": "$.foundByID",
+					"metaName": "Next"
+				},
+				"notfound": {
+					"routes": [],
+					"metaName": "Not Found"
+				},
+				"error": {
+					"routes": [],
+					"context": "$.error",
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Find by ID"
+		},
+		"javascript.2": {
+			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
+			"name": "Execute",
+			"method": "Execute",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$",
+					"metaName": "Data",
+					"metaDescription": "The value to apply as the `data` argument to the JavaScript code. For objects and arrays, `data` is passed by reference."
+				},
+				{
+					"name": "code",
+					"type": "string",
+					"value": "\"console.log(data.foundByID.accountBalance);\\n  console.log(data.request.value.price);\"",
+					"metaName": "Code",
+					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.result",
+					"routes": [
+						"condition.1"
+					],
+					"metaName": "Next"
+				},
+				"error": {
+					"context": "$.error",
+					"routes": [],
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Execute"
+		},
+		"condition.1": {
+			"type": "nodehandler://axway-flow/condition",
+			"name": "Greater Than",
+			"method": "greater-than",
+			"parameters": [
+				{
+					"name": "source",
+					"type": "jsonpath",
+					"value": "$.foundByID.accountBalance",
+					"metaName": "Source",
+					"metaDescription": "The input to test."
+				},
+				{
+					"name": "value",
+					"type": "jsonpath",
+					"value": "$.request.value.price",
+					"metaName": "Value",
+					"metaDescription": "The value to test input against."
+				}
+			],
+			"outputs": {
+				"true": {
+					"routes": [],
+					"context": "$.greaterThan",
+					"metaName": "True"
+				},
+				"false": {
+					"routes": [
+						"javascript.3"
+					],
+					"context": "$.greaterThan",
+					"metaName": "False"
+				}
+			},
+			"metaMethod": "Greater Than"
+		},
+		"javascript.3": {
+			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
+			"name": "Execute",
+			"method": "Execute",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$",
+					"metaName": "Data",
+					"metaDescription": "The value to apply as the `data` argument to the JavaScript code. For objects and arrays, `data` is passed by reference."
+				},
+				{
+					"name": "code",
+					"type": "string",
+					"value": "\"data.request.value.status = 'REJECTED';\\n  console.log(data.request.value);\"",
+					"metaName": "Code",
+					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.result",
+					"routes": [
+						"kafka.1"
+					],
+					"metaName": "Next"
+				},
+				"error": {
+					"context": "$.error",
+					"routes": [],
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Execute"
+		}
+	}
+}

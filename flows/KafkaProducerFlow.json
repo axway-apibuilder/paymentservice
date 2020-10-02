@@ -1,0 +1,67 @@
+{
+	"schemaVersion": "4",
+	"info": {
+		"name": "Kafka producer flow",
+		"description": "Example of how to write messages to a Kafka topic."
+	},
+	"parameter": {
+		"properties": {
+			"params": {},
+			"request": {
+				"description": "The request"
+			},
+			"config": {
+				"type": "object",
+				"description": "The service's configuration"
+			},
+			"env": {
+				"type": "object",
+				"description": "The host OS environment"
+			}
+		},
+		"additionalProperties": false
+	},
+	"start": "kafka.1",
+	"nodes": {
+		"kafka.1": {
+			"type": "nodehandler://@axway/api-builder-plugin-ft-kafka/kafka",
+			"name": "Publish JSON",
+			"method": "publishJSON",
+			"parameters": [
+				{
+					"name": "channelId",
+					"type": "string",
+					"value": "\"kafka-1\"",
+					"metaName": "Channel ID",
+					"metaDescription": "The Kafka channel ID as configured in triggers/kafka.yml."
+				},
+				{
+					"name": "message",
+					"type": "object",
+					"value": "{\"data\":\"From flow\"}",
+					"metaName": "Message",
+					"metaDescription": "The message to publish."
+				},
+				{
+					"name": "topic",
+					"type": "string",
+					"value": "\"quickstart-events\"",
+					"metaName": "Topic",
+					"metaDescription": "The topic."
+				}
+			],
+			"outputs": {
+				"next": {
+					"routes": [],
+					"metaName": "Next"
+				},
+				"error": {
+					"routes": [],
+					"context": "$.error",
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Publish JSON"
+		}
+	}
+}

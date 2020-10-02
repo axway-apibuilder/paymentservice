@@ -1,0 +1,30 @@
+# For a list of all configuration options, please refer to:
+# https://docs.axway.com/bundle/API_Builder_4x_allOS_en/page/api_builder_flow_triggers.html#APIBuilderFlowTriggers-_axway_api-builder-plugin-ft-timer
+#
+# This file supports environmentalization, e.g. $.env.KAFKA_CLIENT:
+# https://docs.axway.com/bundle/API_Builder_4x_allOS_en/page/environmentalization.html
+channels:
+  kafka-1:
+    name: Kafka
+    parameters:
+      # uniquely identifies this client
+      clientId: my-client
+      brokers: localhost:9092
+triggers:
+  my-kafka-1:
+    name: Payments
+    enabled: true
+    channel: kafka-1
+    parameters:
+      # the consumer group ID:
+      groupId: payments
+      topic: order-events
+      # supports: JSON, string, binary
+      messageFormat: JSON
+      # enable to read all messages from the beginning when joining the
+      # consumer group.
+      fromBeginning: 'false'
+    invoke:
+      flow: KafkaConsumerFlow
+      parameters:
+        request: $.request
