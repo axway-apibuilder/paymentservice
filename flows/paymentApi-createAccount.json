@@ -1,8 +1,7 @@
 {
 	"schemaVersion": "4",
 	"info": {
-		"name": "mysqlaccount-deleteAll",
-		"description": "Delete all mysql/account"
+		"name": "createAccount"
 	},
 	"parameter": {
 		"properties": {
@@ -31,71 +30,63 @@
 			"env"
 		]
 	},
-	"start": "model.deleteall",
+	"start": "account.1",
 	"nodes": {
-		"model.deleteall": {
+		"http.setresponse.1": {
+			"type": "nodehandler://axway-flow/http",
+			"method": "setresponse",
+			"name": "Set HTTP Response",
+			"parameters": [
+				{
+					"name": "status",
+					"value": "200",
+					"type": "number",
+					"metaName": "Status",
+					"metaDescription": "The HTTP status code"
+				},
+				{
+					"name": "body",
+					"type": "jsonpath",
+					"value": "$.created",
+					"metaName": "Body",
+					"metaDescription": "The response payload"
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.response",
+					"metaName": "Next"
+				}
+			},
+			"metaMethod": "Set HTTP Response"
+		},
+		"account.1": {
 			"type": "nodehandler://api-builder-flow-invoke/model/mysql/account",
-			"method": "deleteAll",
-			"name": "Delete all accounts",
-			"parameters": [],
+			"name": "Create",
+			"method": "create",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$.params.body",
+					"metaName": "data"
+				}
+			],
 			"outputs": {
 				"next": {
 					"routes": [
-						"response.success"
+						"http.setresponse.1"
 					],
+					"context": "$.created",
 					"metaName": "Next"
 				},
 				"error": {
+					"routes": [],
 					"context": "$.error",
-					"routes": [
-						"response.error"
-					],
 					"metaName": "Error"
 				}
 			},
-			"metaMethod": "Delete all"
-		},
-		"response.success": {
-			"type": "nodehandler://axway-flow/http",
-			"name": "Success (HTTP 200)",
-			"method": "setresponse",
-			"parameters": [
-				{
-					"name": "status",
-					"value": "204",
-					"type": "number",
-					"metaName": "Status",
-					"metaDescription": "The HTTP status code"
-				}
-			],
-			"outputs": {
-				"next": {
-					"context": "$.response",
-					"metaName": "Next"
-				}
-			},
-			"metaMethod": "Set HTTP Response"
-		},
-		"response.error": {
-			"type": "nodehandler://axway-flow/http",
-			"name": "Bad Request (HTTP 400)",
-			"method": "setresponse",
-			"parameters": [
-				{
-					"name": "status",
-					"value": "400",
-					"type": "number",
-					"metaName": "Status",
-					"metaDescription": "The HTTP status code"
-				}
-			],
-			"outputs": {
-				"next": {
-					"context": "$.response",
-					"metaName": "Next"
-				}
-			},
-			"metaMethod": "Set HTTP Response"
+			"metaMethod": "Create"
 		}
 	}
 }

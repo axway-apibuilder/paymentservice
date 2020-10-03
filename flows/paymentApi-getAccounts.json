@@ -1,8 +1,7 @@
 {
 	"schemaVersion": "4",
 	"info": {
-		"name": "mysqlaccount-findAll",
-		"description": "Find all mysql/account"
+		"name": "getAccounts"
 	},
 	"parameter": {
 		"properties": {
@@ -31,35 +30,12 @@
 			"env"
 		]
 	},
-	"start": "model.findAll",
+	"start": "account.1",
 	"nodes": {
-		"model.findAll": {
-			"type": "nodehandler://api-builder-flow-invoke/model/mysql/account",
-			"method": "findAll",
-			"name": "Find all accounts",
-			"parameters": [],
-			"outputs": {
-				"next": {
-					"context": "$.models",
-					"routes": [
-						"response.success"
-					],
-					"metaName": "Next"
-				},
-				"error": {
-					"context": "$.error",
-					"routes": [
-						"response.error"
-					],
-					"metaName": "Error"
-				}
-			},
-			"metaMethod": "Find all"
-		},
-		"response.success": {
+		"http.setresponse.1": {
 			"type": "nodehandler://axway-flow/http",
-			"name": "Success (HTTP 200)",
 			"method": "setresponse",
+			"name": "Set HTTP Response",
 			"parameters": [
 				{
 					"name": "status",
@@ -70,7 +46,8 @@
 				},
 				{
 					"name": "body",
-					"value": "$.models",
+					"type": "jsonpath",
+					"value": "$.foundAll",
 					"metaName": "Body",
 					"metaDescription": "The response payload"
 				}
@@ -83,26 +60,26 @@
 			},
 			"metaMethod": "Set HTTP Response"
 		},
-		"response.error": {
-			"type": "nodehandler://axway-flow/http",
-			"name": "Bad Request (HTTP 400)",
-			"method": "setresponse",
-			"parameters": [
-				{
-					"name": "status",
-					"value": "400",
-					"type": "number",
-					"metaName": "Status",
-					"metaDescription": "The HTTP status code"
-				}
-			],
+		"account.1": {
+			"type": "nodehandler://api-builder-flow-invoke/model/mysql/account",
+			"name": "Find all",
+			"method": "findAll",
+			"parameters": [],
 			"outputs": {
 				"next": {
-					"context": "$.response",
+					"routes": [
+						"http.setresponse.1"
+					],
+					"context": "$.foundAll",
 					"metaName": "Next"
+				},
+				"error": {
+					"routes": [],
+					"context": "$.error",
+					"metaName": "Error"
 				}
 			},
-			"metaMethod": "Set HTTP Response"
+			"metaMethod": "Find all"
 		}
 	}
 }

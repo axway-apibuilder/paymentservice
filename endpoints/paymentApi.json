@@ -1,0 +1,165 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Payment API",
+    "version": "1.0",
+    "description": "Payment API",
+    "contact": {
+      "name": "Axway support",
+      "url": "https://axway.com",
+      "email": "support@axway.com"
+    }
+  },
+  "host": "localhost",
+  "paths": {
+    "/accounts": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of user accounts",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Account"
+              }
+            }
+          }
+        },
+        "summary": "Get Accounts",
+        "parameters": [],
+        "operationId": "getAccounts",
+        "description": "Return all Accounts",
+        "x-flow": "paymentApi-getAccounts"
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "201": {
+            "description": "Accounts",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Account"
+            }
+          }
+        ],
+        "summary": "Create Account",
+        "operationId": "createAccount",
+        "description": "Create an Account",
+        "x-flow": "paymentApi-createAccount"
+      }
+    },
+    "/payments/credit": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Add payment",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "summary": "Credit Paymnet",
+        "operationId": "creditPayment",
+        "description": "Credit a Payment",
+        "x-flow": "paymentApi-creditPayment"
+      }
+    },
+    "/payments/debit": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Debit Payment",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "summary": "Debit Payment",
+        "operationId": "debitPayment",
+        "description": "Debit Payment",
+        "x-flow": "paymentApi-debitPayment"
+      }
+    }
+  },
+  "basePath": "/v1",
+  "schemes": [
+    "http"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json",
+    "application/xml"
+  ],
+  "definitions": {
+    "Payment": {
+      "type": "object",
+      "description": "Payment",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "accountBalance": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "Account": {
+      "type": "object",
+      "description": "Account",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "accountBalance": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
