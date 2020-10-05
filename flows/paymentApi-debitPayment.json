@@ -47,7 +47,7 @@
 				{
 					"name": "code",
 					"type": "string",
-					"value": "\"var transactionAmount = data.params.body.transactionAmount;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount \\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n  if( accountBalance >= transactionAmount ){\\n    accountBalance = accountBalance - transactionAmount;\\n    data.foundByID.accountBalance = accountBalance + '';\\n    data.params.body.status = \\\"SUCCESS\\\";\\n    return true;\\n  }\\n  throw new Error('insufficient money');\"",
+					"value": "\"var transactionAmount = data.params.body.transactionAmount;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount \\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n  if( accountBalance >= transactionAmount ){\\n    accountBalance = accountBalance - transactionAmount;\\n    data.foundByID.accountBalance = accountBalance;\\n    data.params.body.status = \\\"SUCCESS\\\";\\n    return true;\\n  }\\n  throw new Error('insufficient money');\"",
 					"metaName": "Code",
 					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
 				}
