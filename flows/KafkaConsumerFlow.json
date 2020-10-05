@@ -145,7 +145,7 @@
 				{
 					"name": "code",
 					"type": "string",
-					"value": "\"console.log(data.foundByID.accountBalance);\\n  console.log(data.request.value.price);\"",
+					"value": "\"console.log(data.foundByID.accountBalance);\\n  console.log(data.request.value.price);\\n  \\n  async function code(data) {\\n  var transactionAmount = data.request.value.price;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount \\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n  if( accountBalance >= transactionAmount ){\\n    accountBalance = accountBalance - transactionAmount;\\n    data.foundByID.accountBalance = accountBalance;\\n    data.params.body.status = \\\"SUCCESS\\\";\\n    return true;\\n  }\\n  throw new Error('insufficient money');\\n}\"",
 					"metaName": "Code",
 					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
 				}
@@ -154,53 +154,19 @@
 				"next": {
 					"context": "$.result",
 					"routes": [
-						"condition.1"
+						"account.2"
 					],
 					"metaName": "Next"
 				},
 				"error": {
 					"context": "$.error",
-					"routes": [],
+					"routes": [
+						"javascript.4"
+					],
 					"metaName": "Error"
 				}
 			},
 			"metaMethod": "Execute"
-		},
-		"condition.1": {
-			"type": "nodehandler://axway-flow/condition",
-			"name": "Greater Than",
-			"method": "greater-than",
-			"parameters": [
-				{
-					"name": "source",
-					"type": "jsonpath",
-					"value": "$.foundByID.accountBalance",
-					"metaName": "Source",
-					"metaDescription": "The input to test."
-				},
-				{
-					"name": "value",
-					"type": "jsonpath",
-					"value": "$.request.value.price",
-					"metaName": "Value",
-					"metaDescription": "The value to test input against."
-				}
-			],
-			"outputs": {
-				"true": {
-					"routes": [],
-					"context": "$.greaterThan",
-					"metaName": "True"
-				},
-				"false": {
-					"routes": [
-						"javascript.3"
-					],
-					"context": "$.greaterThan",
-					"metaName": "False"
-				}
-			},
-			"metaMethod": "Greater Than"
 		},
 		"javascript.3": {
 			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
@@ -217,7 +183,74 @@
 				{
 					"name": "code",
 					"type": "string",
-					"value": "\"data.request.value.status = 'REJECTED';\\n  console.log(data.request.value);\"",
+					"value": "\"data.request.value.status = 'PAYMENTSUCCESS';\\n  console.log(data.request.value);\"",
+					"metaName": "Code",
+					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.result",
+					"routes": [
+						"kafka.1"
+					],
+					"metaName": "Next"
+				},
+				"error": {
+					"context": "$.error",
+					"routes": [],
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Execute"
+		},
+		"account.2": {
+			"type": "nodehandler://api-builder-flow-invoke/model/mysql/account",
+			"name": "Update",
+			"method": "update",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$.foundByID",
+					"metaName": "data"
+				},
+				{
+					"name": "userId",
+					"type": "jsonpath",
+					"value": "$.request.value.userId",
+					"metaName": "userId"
+				}
+			],
+			"outputs": {
+				"next": {
+					"routes": [
+						"javascript.3"
+					],
+					"context": "$.updated",
+					"metaName": "Next"
+				},
+				"notfound": {
+					"routes": [],
+					"metaName": "Not Found"
+				},
+				"error": {
+					"routes": [],
+					"context": "$.error",
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Update"
+		},
+		"javascript.4": {
+			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
+			"name": "Execute",
+			"method": "Execute",
+			"parameters": [
+				{
+					"name": "code",
+					"type": "string",
+					"value": "\"data.request.value.status = 'PAYMENTREJECTED';\\n  console.log(data.request.value);\"",
 					"metaName": "Code",
 					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
 				}
