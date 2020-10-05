@@ -141,7 +141,7 @@
         "userId": {
           "type": "string"
         },
-        "accountBalance": {
+        "transactionAmount": {
           "type": "number"
         },
         "status": {
