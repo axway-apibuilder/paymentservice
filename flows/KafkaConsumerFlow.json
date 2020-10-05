@@ -24,7 +24,7 @@
 	"nodes": {
 		"javascript.1": {
 			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
-			"name": "Execute",
+			"name": "Message from Kafka topic",
 			"method": "Execute",
 			"parameters": [
 				{
@@ -113,7 +113,7 @@
 			"outputs": {
 				"next": {
 					"routes": [
-						"javascript.2"
+						"condition.1"
 					],
 					"context": "$.foundByID",
 					"metaName": "Next"
@@ -132,7 +132,7 @@
 		},
 		"javascript.2": {
 			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
-			"name": "Execute",
+			"name": "Debit Payment",
 			"method": "Execute",
 			"parameters": [
 				{
@@ -145,7 +145,7 @@
 				{
 					"name": "code",
 					"type": "string",
-					"value": "\"console.log(data.foundByID.accountBalance);\\n  console.log(data.request.value.price);\\n  \\n  async function code(data) {\\n  var transactionAmount = data.request.value.price;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount \\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n  if( accountBalance >= transactionAmount ){\\n    accountBalance = accountBalance - transactionAmount;\\n    data.foundByID.accountBalance = accountBalance;\\n    data.params.body.status = \\\"SUCCESS\\\";\\n    return true;\\n  }\\n  throw new Error('insufficient money');\\n}\"",
+					"value": "\"var transactionAmount = data.request.value.price;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount \\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n  if( accountBalance >= transactionAmount ){\\n    accountBalance = accountBalance - transactionAmount;\\n    data.foundByID.accountBalance = accountBalance;\\n    data.request.value.status = \\\"SUCCESS\\\";\\n    return true;\\n  }\\n  throw new Error('insufficient money');\"",
 					"metaName": "Code",
 					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
 				}
@@ -170,7 +170,7 @@
 		},
 		"javascript.3": {
 			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
-			"name": "Execute",
+			"name": "Set status SUCCESS",
 			"method": "Execute",
 			"parameters": [
 				{
@@ -244,7 +244,7 @@
 		},
 		"javascript.4": {
 			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
-			"name": "Execute",
+			"name": "Set status - REJECTED",
 			"method": "Execute",
 			"parameters": [
 				{
@@ -253,6 +253,13 @@
 					"value": "\"data.request.value.status = 'PAYMENTREJECTED';\\n  console.log(data.request.value);\"",
 					"metaName": "Code",
 					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				},
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$",
+					"metaName": "Data",
+					"metaDescription": "The value to apply as the `data` argument to the JavaScript code. For objects and arrays, `data` is passed by reference."
 				}
 			],
 			"outputs": {
@@ -261,6 +268,78 @@
 					"routes": [
 						"kafka.1"
 					],
+					"metaName": "Next"
+				},
+				"error": {
+					"context": "$.error",
+					"routes": [],
+					"metaName": "Error"
+				}
+			},
+			"metaMethod": "Execute"
+		},
+		"condition.1": {
+			"type": "nodehandler://axway-flow/condition",
+			"name": "Equals PENDING",
+			"method": "equals",
+			"parameters": [
+				{
+					"name": "source",
+					"type": "jsonpath",
+					"value": "$.request.value.status",
+					"metaName": "Source",
+					"metaDescription": "The input to test."
+				},
+				{
+					"name": "value",
+					"type": "string",
+					"value": "\"PENDING\"",
+					"metaName": "Value",
+					"metaDescription": "The value to test input against."
+				}
+			],
+			"outputs": {
+				"true": {
+					"routes": [
+						"javascript.2"
+					],
+					"context": "$.equals",
+					"metaName": "True"
+				},
+				"false": {
+					"routes": [
+						"javascript.5"
+					],
+					"context": "$.equals",
+					"metaName": "False"
+				}
+			},
+			"metaMethod": "Equals"
+		},
+		"javascript.5": {
+			"type": "nodehandler://@axway/api-builder-plugin-fn-javascript/javascript",
+			"name": "Credit Payment",
+			"method": "Execute",
+			"parameters": [
+				{
+					"name": "data",
+					"type": "jsonpath",
+					"value": "$",
+					"metaName": "Data",
+					"metaDescription": "The value to apply as the `data` argument to the JavaScript code. For objects and arrays, `data` is passed by reference."
+				},
+				{
+					"name": "code",
+					"type": "string",
+					"value": "\"var transactionAmount = data.request.value.price;\\n  var accountBalance = data.foundByID.accountBalance;\\n  console.log(\\\"Transaction Amount to be credited\\\" + transactionAmount);\\n  console.log(\\\"Account balance \\\" + accountBalance);\\n \\n  accountBalance = accountBalance + transactionAmount;\\n  data.foundByID.accountBalance = accountBalance;\"",
+					"metaName": "Code",
+					"metaDescription": "A JavaScript function body. Supports `await` and returning promises."
+				}
+			],
+			"outputs": {
+				"next": {
+					"context": "$.result",
+					"routes": [],
 					"metaName": "Next"
 				},
 				"error": {
